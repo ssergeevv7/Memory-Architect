@@ -1,434 +1,645 @@
-import React, { useState, useEffect } from 'react';
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memory Architect - Конструктор воспоминаний</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            background: #000;
+            color: #10b981;
+        }
+        .scrollbar-thin::-webkit-scrollbar {
+            width: 6px;
+        }
+        .scrollbar-thin::-webkit-scrollbar-track {
+            background: #1f2937;
+        }
+        .scrollbar-thin::-webkit-scrollbar-thumb {
+            background: #10b981;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
 
-const MemoryArchitect = () => {
-  const [gameState, setGameState] = useState('intro');
-  const [currentClient, setCurrentClient] = useState(null);
-  const [selectedBlocks, setSelectedBlocks] = useState([]);
-  const [budget, setBudget] = useState(1000);
-  const [score, setScore] = useState(0);
-  const [evaluation, setEvaluation] = useState(null);
-  const [completedOrders, setCompletedOrders] = useState(0);
+    <script type="text/babel">
+        const { useState, useEffect } = React;
 
-  // Типы блоков воспоминаний
-  const memoryBlocks = {
-    places: [
-      { id: 'home', name: 'Семейный дом', cost: 100, stability: 3, authenticity: 2, keywords: ['безопасность', 'тепло'] },
-      { id: 'school', name: 'Школа', cost: 80, stability: 2, authenticity: 3, keywords: ['обучение', 'дружба'] },
-      { id: 'hospital', name: 'Больница', cost: 120, stability: -1, authenticity: 2, keywords: ['боль', 'забота'] },
-      { id: 'beach', name: 'Пляж', cost: 150, stability: 2, authenticity: 1, keywords: ['покой', 'свобода'] },
-      { id: 'city', name: 'Большой город', cost: 90, stability: 0, authenticity: 3, keywords: ['суета', 'возможности'] },
-      { id: 'farm', name: 'Ферма', cost: 200, stability: 3, authenticity: 1, keywords: ['природа', 'труд'] }
-    ],
-    people: [
-      { id: 'mother', name: 'Любящая мать', cost: 200, stability: 4, authenticity: 2, keywords: ['любовь', 'защита'] },
-      { id: 'father', name: 'Строгий отец', cost: 180, stability: 2, authenticity: 3, keywords: ['дисциплина', 'авторитет'] },
-      { id: 'sibling', name: 'Брат/сестра', cost: 160, stability: 1, authenticity: 3, keywords: ['соперничество', 'дружба'] },
-      { id: 'friend', name: 'Лучший друг', cost: 140, stability: 2, authenticity: 2, keywords: ['доверие', 'веселье'] },
-      { id: 'teacher', name: 'Мудрый наставник', cost: 120, stability: 1, authenticity: 2, keywords: ['знания', 'рост'] },
-      { id: 'love', name: 'Первая любовь', cost: 250, stability: -1, authenticity: 1, keywords: ['страсть', 'потеря'] }
-    ],
-    emotions: [
-      { id: 'joy', name: 'Чистая радость', cost: 100, stability: 3, authenticity: 2, keywords: ['счастье', 'легкость'] },
-      { id: 'sadness', name: 'Глубокая грусть', cost: 80, stability: -2, authenticity: 4, keywords: ['потеря', 'меланхолия'] },
-      { id: 'fear', name: 'Детский страх', cost: 60, stability: -3, authenticity: 4, keywords: ['уязвимость', 'защита'] },
-      { id: 'pride', name: 'Гордость за достижение', cost: 120, stability: 2, authenticity: 2, keywords: ['успех', 'признание'] },
-      { id: 'guilt', name: 'Чувство вины', cost: 90, stability: -1, authenticity: 3, keywords: ['ошибка', 'раскаяние'] },
-      { id: 'wonder', name: 'Детское удивление', cost: 110, stability: 1, authenticity: 2, keywords: ['открытие', 'магия'] }
-    ],
-    events: [
-      { id: 'birthday', name: 'День рождения', cost: 130, stability: 2, authenticity: 2, keywords: ['праздник', 'внимание'] },
-      { id: 'graduation', name: 'Выпускной', cost: 150, stability: 1, authenticity: 3, keywords: ['достижение', 'переход'] },
-      { id: 'wedding', name: 'Свадьба', cost: 300, stability: 1, authenticity: 1, keywords: ['любовь', 'обязательства'] },
-      { id: 'funeral', name: 'Похороны близкого', cost: 200, stability: -3, authenticity: 4, keywords: ['потеря', 'горе'] },
-      { id: 'accident', name: 'Несчастный случай', cost: 180, stability: -4, authenticity: 3, keywords: ['травма', 'выживание'] },
-      { id: 'achievement', name: 'Первая победа', cost: 140, stability: 2, authenticity: 2, keywords: ['триумф', 'гордость'] }
-    ]
-  };
+        const MemoryArchitect = () => {
+          const [gameState, setGameState] = useState('intro');
+          const [currentClient, setCurrentClient] = useState(null);
+          const [selectedBlocks, setSelectedBlocks] = useState([]);
+          const [budget, setBudget] = useState(1000);
+          const [score, setScore] = useState(0);
+          const [evaluation, setEvaluation] = useState(null);
+          const [completedOrders, setCompletedOrders] = useState(0);
 
-  // Типы репликантов-клиентов
-  const clients = [
-    {
-      id: 'companion',
-      name: 'Серия N-7 "Компаньон"',
-      description: 'Репликант-компаньон для богатой семьи',
-      requirements: {
-        stability: { min: 8, max: 15 },
-        authenticity: { min: 5, max: 12 },
-        preferredKeywords: ['любовь', 'тепло', 'защита', 'забота'],
-        avoidKeywords: ['травма', 'боль', 'потеря']
-      },
-      reward: 500
-    },
-    {
-      id: 'worker',
-      name: 'Серия W-12 "Рабочий"',
-      description: 'Индустриальный репликант для тяжелого труда',
-      requirements: {
-        stability: { min: 5, max: 10 },
-        authenticity: { min: 8, max: 15 },
-        preferredKeywords: ['дисциплина', 'труд', 'достижение'],
-        avoidKeywords: ['страсть', 'свобода', 'магия']
-      },
-      reward: 400
-    },
-    {
-      id: 'military',
-      name: 'Серия M-8 "Солдат"',
-      description: 'Боевой репликант для военных операций',
-      requirements: {
-        stability: { min: 3, max: 8 },
-        authenticity: { min: 10, max: 20 },
-        preferredKeywords: ['дисциплина', 'выживание', 'авторитет'],
-        avoidKeywords: ['страсть', 'веселье', 'покой']
-      },
-      reward: 600
-    }
-  ];
+          // Типы блоков воспоминаний
+          const memoryBlocks = {
+            places: [
+              { id: 'home', name: 'Семейный дом', cost: 100, stability: 3, authenticity: 2, keywords: ['безопасность', 'тепло'] },
+              { id: 'school', name: 'Школа', cost: 80, stability: 2, authenticity: 3, keywords: ['обучение', 'дружба'] },
+              { id: 'hospital', name: 'Больница', cost: 120, stability: -1, authenticity: 2, keywords: ['боль', 'забота'] },
+              { id: 'beach', name: 'Пляж', cost: 150, stability: 2, authenticity: 1, keywords: ['покой', 'свобода'] },
+              { id: 'city', name: 'Большой город', cost: 90, stability: 0, authenticity: 3, keywords: ['суета', 'возможности'] },
+              { id: 'farm', name: 'Ферма', cost: 200, stability: 3, authenticity: 1, keywords: ['природа', 'труд'] },
+              { id: 'library', name: 'Библиотека', cost: 110, stability: 1, authenticity: 2, keywords: ['знания', 'тишина'] },
+              { id: 'park', name: 'Городской парк', cost: 130, stability: 2, authenticity: 2, keywords: ['покой', 'природа'] }
+            ],
+            people: [
+              { id: 'mother', name: 'Любящая мать', cost: 200, stability: 4, authenticity: 2, keywords: ['любовь', 'защита'] },
+              { id: 'father', name: 'Строгий отец', cost: 180, stability: 2, authenticity: 3, keywords: ['дисциплина', 'авторитет'] },
+              { id: 'sibling', name: 'Брат/сестра', cost: 160, stability: 1, authenticity: 3, keywords: ['соперничество', 'дружба'] },
+              { id: 'friend', name: 'Лучший друг', cost: 140, stability: 2, authenticity: 2, keywords: ['доверие', 'веселье'] },
+              { id: 'teacher', name: 'Мудрый наставник', cost: 120, stability: 1, authenticity: 2, keywords: ['знания', 'рост'] },
+              { id: 'love', name: 'Первая любовь', cost: 250, stability: -1, authenticity: 1, keywords: ['страсть', 'потеря'] },
+              { id: 'mentor', name: 'Военный инструктор', cost: 170, stability: 0, authenticity: 3, keywords: ['дисциплина', 'выживание'] },
+              { id: 'pet', name: 'Домашний питомец', cost: 190, stability: 3, authenticity: 1, keywords: ['забота', 'тепло'] }
+            ],
+            emotions: [
+              { id: 'joy', name: 'Чистая радость', cost: 100, stability: 3, authenticity: 2, keywords: ['счастье', 'легкость'] },
+              { id: 'sadness', name: 'Глубокая грусть', cost: 80, stability: -2, authenticity: 4, keywords: ['потеря', 'меланхолия'] },
+              { id: 'fear', name: 'Детский страх', cost: 60, stability: -3, authenticity: 4, keywords: ['уязвимость', 'защита'] },
+              { id: 'pride', name: 'Гордость за достижение', cost: 120, stability: 2, authenticity: 2, keywords: ['успех', 'признание'] },
+              { id: 'guilt', name: 'Чувство вины', cost: 90, stability: -1, authenticity: 3, keywords: ['ошибка', 'раскаяние'] },
+              { id: 'wonder', name: 'Детское удивление', cost: 110, stability: 1, authenticity: 2, keywords: ['открытие', 'магия'] },
+              { id: 'anger', name: 'Праведный гнев', cost: 70, stability: -2, authenticity: 3, keywords: ['несправедливость', 'сила'] },
+              { id: 'calm', name: 'Глубокое спокойствие', cost: 130, stability: 3, authenticity: 1, keywords: ['покой', 'баланс'] }
+            ],
+            events: [
+              { id: 'birthday', name: 'День рождения', cost: 130, stability: 2, authenticity: 2, keywords: ['праздник', 'внимание'] },
+              { id: 'graduation', name: 'Выпускной', cost: 150, stability: 1, authenticity: 3, keywords: ['достижение', 'переход'] },
+              { id: 'wedding', name: 'Свадьба', cost: 300, stability: 1, authenticity: 1, keywords: ['любовь', 'обязательства'] },
+              { id: 'funeral', name: 'Похороны близкого', cost: 200, stability: -3, authenticity: 4, keywords: ['потеря', 'горе'] },
+              { id: 'accident', name: 'Несчастный случай', cost: 180, stability: -4, authenticity: 3, keywords: ['травма', 'выживание'] },
+              { id: 'achievement', name: 'Первая победа', cost: 140, stability: 2, authenticity: 2, keywords: ['триумф', 'гордость'] },
+              { id: 'training', name: 'Военные учения', cost: 160, stability: 0, authenticity: 3, keywords: ['дисциплина', 'выносливость'] },
+              { id: 'rescue', name: 'Спасение животного', cost: 170, stability: 2, authenticity: 2, keywords: ['сострадание', 'героизм'] }
+            ]
+          };
 
-  const startGame = () => {
-    const randomClient = clients[Math.floor(Math.random() * clients.length)];
-    setCurrentClient(randomClient);
-    setBudget(1000);
-    setSelectedBlocks([]);
-    setEvaluation(null);
-    setGameState('building');
-  };
+          // Типы репликантов-клиентов
+          const clients = [
+            {
+              id: 'companion',
+              name: 'Серия N-7 "Компаньон"',
+              description: 'Репликант-компаньон для богатой семьи. Требует стабильной, эмпатичной личности.',
+              requirements: {
+                stability: { min: 6, max: 15 },
+                authenticity: { min: 5, max: 12 },
+                preferredKeywords: ['любовь', 'тепло', 'защита', 'забота', 'сострадание'],
+                avoidKeywords: ['травма', 'боль', 'потеря', 'гнев', 'агрессия']
+              },
+              reward: 500
+            },
+            {
+              id: 'worker',
+              name: 'Серия W-12 "Рабочий"',
+              description: 'Индустриальный репликант для физического труда. Нужны практичные, стабильные воспоминания.',
+              requirements: {
+                stability: { min: 4, max: 10 },
+                authenticity: { min: 8, max: 15 },
+                preferredKeywords: ['дисциплина', 'труд', 'достижение', 'выносливость'],
+                avoidKeywords: ['страсть', 'свобода', 'магия', 'веселье']
+              },
+              reward: 400
+            },
+            {
+              id: 'military',
+              name: 'Серия M-8 "Солдат"',
+              description: 'Боевой репликант для военных операций. Нужны воспоминания о дисциплине и выживании.',
+              requirements: {
+                stability: { min: 2, max: 8 },
+                authenticity: { min: 10, max: 20 },
+                preferredKeywords: ['дисциплина', 'выживание', 'авторитет', 'героизм'],
+                avoidKeywords: ['страсть', 'веселье', 'покой', 'магия']
+              },
+              reward: 600
+            },
+            {
+              id: 'investigator',
+              name: 'Серия I-5 "Детектив"',
+              description: 'Репликант-следователь для полицейской работы. Требует аналитические способности.',
+              requirements: {
+                stability: { min: 5, max: 12 },
+                authenticity: { min: 6, max: 14 },
+                preferredKeywords: ['знания', 'анализ', 'справедливость', 'наблюдение'],
+                avoidKeywords: ['импульсивность', 'страсть', 'хаос']
+              },
+              reward: 550
+            }
+          ];
 
-  const addBlock = (category, block) => {
-    if (budget >= block.cost) {
-      setSelectedBlocks([...selectedBlocks, { ...block, category }]);
-      setBudget(budget - block.cost);
-    }
-  };
+          const startGame = () => {
+            const randomClient = clients[Math.floor(Math.random() * clients.length)];
+            setCurrentClient(randomClient);
+            setBudget(1000);
+            setSelectedBlocks([]);
+            setEvaluation(null);
+            setGameState('building');
+          };
 
-  const removeBlock = (index) => {
-    const block = selectedBlocks[index];
-    setSelectedBlocks(selectedBlocks.filter((_, i) => i !== index));
-    setBudget(budget + block.cost);
-  };
+          const addBlock = (category, block) => {
+            if (budget >= block.cost) {
+              setSelectedBlocks([...selectedBlocks, { ...block, category }]);
+              setBudget(budget - block.cost);
+            }
+          };
 
-  const evaluateMemory = () => {
-    if (selectedBlocks.length === 0) return;
+          const removeBlock = (index) => {
+            const block = selectedBlocks[index];
+            setSelectedBlocks(selectedBlocks.filter((_, i) => i !== index));
+            setBudget(budget + block.cost);
+          };
 
-    const totalStability = selectedBlocks.reduce((sum, block) => sum + block.stability, 0);
-    const totalAuthenticity = selectedBlocks.reduce((sum, block) => sum + block.authenticity, 0);
-    
-    // Собираем все ключевые слова
-    const allKeywords = selectedBlocks.flatMap(block => block.keywords);
-    const preferredCount = allKeywords.filter(keyword => 
-      currentClient.requirements.preferredKeywords.includes(keyword)
-    ).length;
-    const avoidedCount = allKeywords.filter(keyword => 
-      currentClient.requirements.avoidKeywords.includes(keyword)
-    ).length;
+          const evaluateMemory = () => {
+            if (selectedBlocks.length === 0) return;
 
-    // Проверяем соответствие требованиям
-    const stabilityOK = totalStability >= currentClient.requirements.stability.min && 
-                       totalStability <= currentClient.requirements.stability.max;
-    const authenticityOK = totalAuthenticity >= currentClient.requirements.authenticity.min && 
-                          totalAuthenticity <= currentClient.requirements.authenticity.max;
-
-    // Рассчитываем итоговую оценку
-    let finalScore = 0;
-    let feedback = [];
-
-    if (stabilityOK) {
-      finalScore += 200;
-      feedback.push("✓ Психологическая стабильность в норме");
-    } else {
-      feedback.push("✗ Проблемы со стабильностью личности");
-    }
-
-    if (authenticityOK) {
-      finalScore += 200;
-      feedback.push("✓ Уровень правдоподобности приемлем");
-    } else {
-      feedback.push("✗ Воспоминания выглядят искусственно");
-    }
-
-    finalScore += preferredCount * 50;
-    finalScore -= avoidedCount * 100;
-
-    if (preferredCount > 0) {
-      feedback.push(`✓ Включены подходящие элементы (${preferredCount})`);
-    }
-    if (avoidedCount > 0) {
-      feedback.push(`✗ Присутствуют нежелательные элементы (${avoidedCount})`);
-    }
-
-    // Бонус за сложность
-    if (selectedBlocks.length >= 4) {
-      finalScore += 100;
-      feedback.push("✓ Бонус за комплексность воспоминания");
-    }
-
-    const success = stabilityOK && authenticityOK && avoidedCount === 0;
-    
-    if (success) {
-      finalScore += currentClient.reward;
-      feedback.push(`✓ Заказ выполнен! Премия: ${currentClient.reward} кредитов`);
-    }
-
-    setEvaluation({
-      success,
-      score: Math.max(0, finalScore),
-      totalStability,
-      totalAuthenticity,
-      feedback,
-      preferredCount,
-      avoidedCount
-    });
-
-    if (success) {
-      setScore(score + finalScore);
-      setCompletedOrders(completedOrders + 1);
-    }
-  };
-
-  const nextOrder = () => {
-    startGame();
-  };
-
-  return (
-    <div className="min-h-screen bg-black text-green-400 font-mono">
-      {/* Header */}
-      <header className="bg-gray-900 border-b border-green-800 p-4">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold text-green-300">MEMORY ARCHITECT</h1>
-            <p className="text-sm text-green-600">TYRELL CORP • MEMORY DIVISION</p>
-          </div>
-          <div className="text-right">
-            <div className="text-sm text-green-600">РЕЙТИНГ: {score} • ЗАКАЗОВ: {completedOrders}</div>
-            <div className="text-lg">БЮДЖЕТ: {budget} кредитов</div>
-          </div>
-        </div>
-      </header>
-
-      {/* Intro Screen */}
-      {gameState === 'intro' && (
-        <div className="max-w-4xl mx-auto p-8 mt-12">
-          <div className="bg-gray-900 border border-green-800 p-8 rounded-lg text-center">
-            <h2 className="text-3xl mb-6 text-green-300">ДОБРО ПОЖАЛОВАТЬ В ОТДЕЛ ПАМЯТИ</h2>
-            <div className="text-green-500 mb-8 leading-relaxed">
-              <p className="mb-4">
-                Вы - архитектор воспоминаний в корпорации Tyrell. Ваша задача - создавать 
-                искусственные воспоминания для репликантов разных серий.
-              </p>
-              <p className="mb-4">
-                Используйте блоки памяти: места, люди, эмоции и события. Но помните - 
-                каждый тип репликанта требует особого подхода.
-              </p>
-              <p className="text-yellow-400">
-                ⚠ Неудачная память может привести к нестабильности личности!
-              </p>
-            </div>
-            <button
-              onClick={startGame}
-              className="bg-green-900 hover:bg-green-800 border border-green-600 px-8 py-3 rounded text-xl transition-all"
-            >
-              НАЧАТЬ РАБОТУ
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Main Game Interface */}
-      {gameState === 'building' && currentClient && (
-        <div className="max-w-7xl mx-auto p-4">
-          <div className="grid grid-cols-12 gap-4 h-screen">
+            const totalStability = selectedBlocks.reduce((sum, block) => sum + block.stability, 0);
+            const totalAuthenticity = selectedBlocks.reduce((sum, block) => sum + block.authenticity, 0);
             
-            {/* Left Panel - Memory Blocks */}
-            <div className="col-span-3 bg-gray-900 border border-green-800 rounded-lg p-4 overflow-y-auto">
-              <h3 className="text-green-300 mb-4 text-center">БИБЛИОТЕКА ПАМЯТИ</h3>
-              
-              {Object.entries(memoryBlocks).map(([category, blocks]) => (
-                <div key={category} className="mb-6">
-                  <h4 className="text-green-400 mb-2 text-sm uppercase">
-                    {category === 'places' ? 'МЕСТА' : 
-                     category === 'people' ? 'ЛЮДИ' :
-                     category === 'emotions' ? 'ЭМОЦИИ' : 'СОБЫТИЯ'}
-                  </h4>
-                  <div className="space-y-2">
-                    {blocks.map(block => (
-                      <div
-                        key={block.id}
-                        onClick={() => addBlock(category, block)}
-                        className={`bg-gray-800 border border-green-700 p-2 rounded cursor-pointer hover:bg-green-900 transition-all text-xs ${
-                          budget < block.cost ? 'opacity-50 cursor-not-allowed' : ''
-                        }`}
-                      >
-                        <div className="font-bold text-green-300">{block.name}</div>
-                        <div className="text-green-600">{block.cost} кр.</div>
-                        <div className="text-gray-400">
-                          С: {block.stability > 0 ? '+' : ''}{block.stability} | 
-                          П: {block.authenticity}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
+            const allKeywords = selectedBlocks.flatMap(block => block.keywords);
+            const preferredCount = allKeywords.filter(keyword => 
+              currentClient.requirements.preferredKeywords.includes(keyword)
+            ).length;
+            const avoidedCount = allKeywords.filter(keyword => 
+              currentClient.requirements.avoidKeywords.includes(keyword)
+            ).length;
 
-            {/* Center - Memory Constructor */}
-            <div className="col-span-6 bg-gray-900 border border-green-800 rounded-lg p-4">
-              <h3 className="text-green-300 mb-4 text-center">КОНСТРУКТОР ВОСПОМИНАНИЙ</h3>
-              
-              <div className="bg-black border border-green-700 rounded-lg p-4 min-h-80 mb-4">
-                {selectedBlocks.length === 0 ? (
-                  <div className="text-center text-green-600 mt-20">
-                    <div className="text-4xl mb-4">🧠</div>
-                    <p>Выберите блоки памяти из библиотеки</p>
-                    <p className="text-sm">Создайте целостное воспоминание для репликанта</p>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {selectedBlocks.map((block, index) => (
-                      <div
-                        key={index}
-                        className="bg-gray-800 border border-green-600 p-3 rounded-lg flex justify-between items-center"
-                      >
-                        <div>
-                          <div className="text-green-300 font-bold">{block.name}</div>
-                          <div className="text-xs text-gray-400">
-                            {block.keywords.join(', ')}
-                          </div>
-                        </div>
-                        <button
-                          onClick={() => removeBlock(index)}
-                          className="text-red-400 hover:text-red-300 text-xl"
-                        >
-                          ×
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
+            const stabilityOK = totalStability >= currentClient.requirements.stability.min && 
+                               totalStability <= currentClient.requirements.stability.max;
+            const authenticityOK = totalAuthenticity >= currentClient.requirements.authenticity.min && 
+                                  totalAuthenticity <= currentClient.requirements.authenticity.max;
 
-              <div className="flex justify-center space-x-4">
-                <button
-                  onClick={evaluateMemory}
-                  disabled={selectedBlocks.length === 0}
-                  className="bg-blue-900 hover:bg-blue-800 disabled:bg-gray-700 border border-blue-600 px-6 py-2 rounded transition-all disabled:opacity-50"
-                >
-                  ПРОВЕСТИ ТЕСТ
-                </button>
-                <button
-                  onClick={() => {
-                    setSelectedBlocks([]);
-                    setBudget(1000);
-                  }}
-                  className="bg-red-900 hover:bg-red-800 border border-red-600 px-6 py-2 rounded transition-all"
-                >
-                  ОЧИСТИТЬ
-                </button>
-              </div>
-            </div>
+            let finalScore = 0;
+            let feedback = [];
 
-            {/* Right Panel - Client Info & Results */}
-            <div className="col-span-3 space-y-4">
-              
-              {/* Client Info */}
-              <div className="bg-gray-900 border border-green-800 rounded-lg p-4">
-                <h3 className="text-green-300 mb-3">ЗАКАЗЧИК</h3>
-                <div className="text-sm space-y-2">
-                  <div className="text-green-400 font-bold">{currentClient.name}</div>
-                  <div className="text-green-500 text-xs">{currentClient.description}</div>
+            if (stabilityOK) {
+              finalScore += 200;
+              feedback.push("✓ Психологическая стабильность в норме");
+            } else {
+              feedback.push("✗ Проблемы со стабильностью личности");
+            }
+
+            if (authenticityOK) {
+              finalScore += 200;
+              feedback.push("✓ Уровень правдоподобности приемлем");
+            } else {
+              feedback.push("✗ Воспоминания выглядят искусственно");
+            }
+
+            finalScore += preferredCount * 50;
+            finalScore -= avoidedCount * 100;
+
+            if (preferredCount > 0) {
+              feedback.push(`✓ Включены подходящие элементы (${preferredCount})`);
+            }
+            if (avoidedCount > 0) {
+              feedback.push(`✗ Присутствуют нежелательные элементы (${avoidedCount})`);
+            }
+
+            if (selectedBlocks.length >= 4) {
+              finalScore += 100;
+              feedback.push("✓ Бонус за комплексность воспоминания");
+            }
+
+            const success = stabilityOK && authenticityOK && avoidedCount === 0;
+            
+            if (success) {
+              finalScore += currentClient.reward;
+              feedback.push(`✓ Заказ выполнен! Премия: ${currentClient.reward} кредитов`);
+            }
+
+            setEvaluation({
+              success,
+              score: Math.max(0, finalScore),
+              totalStability,
+              totalAuthenticity,
+              feedback,
+              preferredCount,
+              avoidedCount
+            });
+
+            if (success) {
+              setScore(score + finalScore);
+              setCompletedOrders(completedOrders + 1);
+            }
+          };
+
+          const nextOrder = () => {
+            startGame();
+          };
+
+          return React.createElement('div', {
+            className: "min-h-screen bg-black text-green-400 font-mono"
+          }, [
+            // Header
+            React.createElement('header', {
+              key: 'header',
+              className: "bg-gray-900 border-b border-green-800 p-4"
+            },
+              React.createElement('div', {
+                className: "max-w-7xl mx-auto flex justify-between items-center"
+              }, [
+                React.createElement('div', { key: 'title' }, [
+                  React.createElement('h1', {
+                    key: 'main-title',
+                    className: "text-2xl font-bold text-green-300"
+                  }, 'MEMORY ARCHITECT'),
+                  React.createElement('p', {
+                    key: 'subtitle',
+                    className: "text-sm text-green-600"
+                  }, 'TYRELL CORP • MEMORY DIVISION')
+                ]),
+                React.createElement('div', {
+                  key: 'stats',
+                  className: "text-right"
+                }, [
+                  React.createElement('div', {
+                    key: 'rating',
+                    className: "text-sm text-green-600"
+                  }, `РЕЙТИНГ: ${score} • ЗАКАЗОВ: ${completedOrders}`),
+                  React.createElement('div', {
+                    key: 'budget',
+                    className: "text-lg"
+                  }, `БЮДЖЕТ: ${budget} кредитов`)
+                ])
+              ])
+            ),
+
+            // Intro Screen
+            gameState === 'intro' && React.createElement('div', {
+              key: 'intro',
+              className: "max-w-4xl mx-auto p-8 mt-12"
+            },
+              React.createElement('div', {
+                className: "bg-gray-900 border border-green-800 p-8 rounded-lg text-center"
+              }, [
+                React.createElement('h2', {
+                  key: 'intro-title',
+                  className: "text-3xl mb-6 text-green-300"
+                }, 'ДОБРО ПОЖАЛОВАТЬ В ОТДЕЛ ПАМЯТИ'),
+                React.createElement('div', {
+                  key: 'intro-content',
+                  className: "text-green-500 mb-8 leading-relaxed"
+                }, [
+                  React.createElement('p', {
+                    key: 'p1',
+                    className: "mb-4"
+                  }, 'Вы - архитектор воспоминаний в корпорации Tyrell. Ваша задача - создавать искусственные воспоминания для репликантов разных серий.'),
+                  React.createElement('p', {
+                    key: 'p2',
+                    className: "mb-4"
+                  }, 'Используйте блоки памяти: места, люди, эмоции и события. Но помните - каждый тип репликанта требует особого подхода.'),
+                  React.createElement('p', {
+                    key: 'warning',
+                    className: "text-yellow-400"
+                  }, '⚠ Неудачная память может привести к нестабильности личности!')
+                ]),
+                React.createElement('button', {
+                  key: 'start-btn',
+                  onClick: startGame,
+                  className: "bg-green-900 hover:bg-green-800 border border-green-600 px-8 py-3 rounded text-xl transition-all"
+                }, 'НАЧАТЬ РАБОТУ')
+              ])
+            ),
+
+            // Main Game Interface
+            gameState === 'building' && currentClient && React.createElement('div', {
+              key: 'main-game',
+              className: "max-w-7xl mx-auto p-4"
+            },
+              React.createElement('div', {
+                className: "grid grid-cols-12 gap-4 min-h-screen"
+              }, [
+                // Left Panel - Memory Blocks
+                React.createElement('div', {
+                  key: 'left-panel',
+                  className: "col-span-12 md:col-span-3 bg-gray-900 border border-green-800 rounded-lg p-4 h-96 md:h-auto overflow-y-auto scrollbar-thin"
+                }, [
+                  React.createElement('h3', {
+                    key: 'lib-title',
+                    className: "text-green-300 mb-4 text-center"
+                  }, 'БИБЛИОТЕКА ПАМЯТИ'),
                   
-                  <div className="border-t border-green-800 pt-2 mt-3">
-                    <div className="text-xs">
-                      <div className="mb-1">
-                        <span className="text-green-600">Стабильность:</span> 
-                        <span className="text-green-400"> {currentClient.requirements.stability.min}-{currentClient.requirements.stability.max}</span>
-                      </div>
-                      <div className="mb-2">
-                        <span className="text-green-600">Подлинность:</span> 
-                        <span className="text-green-400"> {currentClient.requirements.authenticity.min}-{currentClient.requirements.authenticity.max}</span>
-                      </div>
-                      
-                      <div className="mb-1">
-                        <span className="text-green-600">Желательно:</span>
-                        <div className="text-green-400 text-xs">
-                          {currentClient.requirements.preferredKeywords.join(', ')}
-                        </div>
-                      </div>
-                      
-                      <div>
-                        <span className="text-red-400">Избегать:</span>
-                        <div className="text-red-400 text-xs">
-                          {currentClient.requirements.avoidKeywords.join(', ')}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+                  ...Object.entries(memoryBlocks).map(([category, blocks]) =>
+                    React.createElement('div', {
+                      key: category,
+                      className: "mb-6"
+                    }, [
+                      React.createElement('h4', {
+                        key: 'category-title',
+                        className: "text-green-400 mb-2 text-sm uppercase"
+                      }, category === 'places' ? 'МЕСТА' : 
+                         category === 'people' ? 'ЛЮДИ' :
+                         category === 'emotions' ? 'ЭМОЦИИ' : 'СОБЫТИЯ'),
+                      React.createElement('div', {
+                        key: 'blocks',
+                        className: "space-y-2"
+                      }, blocks.map(block =>
+                        React.createElement('div', {
+                          key: block.id,
+                          onClick: () => addBlock(category, block),
+                          className: `bg-gray-800 border border-green-700 p-2 rounded cursor-pointer hover:bg-green-900 transition-all text-xs ${
+                            budget < block.cost ? 'opacity-50 cursor-not-allowed' : ''
+                          }`
+                        }, [
+                          React.createElement('div', {
+                            key: 'name',
+                            className: "font-bold text-green-300"
+                          }, block.name),
+                          React.createElement('div', {
+                            key: 'cost',
+                            className: "text-green-600"
+                          }, `${block.cost} кр.`),
+                          React.createElement('div', {
+                            key: 'stats',
+                            className: "text-gray-400"
+                          }, `С: ${block.stability > 0 ? '+' : ''}${block.stability} | П: ${block.authenticity}`)
+                        ])
+                      ))
+                    ])
+                  )
+                ]),
 
-              {/* Current Memory Stats */}
-              {selectedBlocks.length > 0 && (
-                <div className="bg-gray-900 border border-green-800 rounded-lg p-4">
-                  <h3 className="text-green-300 mb-3">АНАЛИЗ</h3>
-                  <div className="text-sm space-y-2">
-                    <div>
-                      <span className="text-green-600">Стабильность:</span> 
-                      <span className="text-green-400"> {selectedBlocks.reduce((sum, block) => sum + block.stability, 0)}</span>
-                    </div>
-                    <div>
-                      <span className="text-green-600">Подлинность:</span> 
-                      <span className="text-green-400"> {selectedBlocks.reduce((sum, block) => sum + block.authenticity, 0)}</span>
-                    </div>
-                    <div>
-                      <span className="text-green-600">Элементов:</span> 
-                      <span className="text-green-400"> {selectedBlocks.length}</span>
-                    </div>
-                    <div>
-                      <span className="text-green-600">Потрачено:</span> 
-                      <span className="text-green-400"> {1000 - budget} кр.</span>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Evaluation Results */}
-              {evaluation && (
-                <div className="bg-gray-900 border border-green-800 rounded-lg p-4">
-                  <h3 className="text-green-300 mb-3">РЕЗУЛЬТАТ ТЕСТИРОВАНИЯ</h3>
+                // Center - Memory Constructor
+                React.createElement('div', {
+                  key: 'center-panel',
+                  className: "col-span-12 md:col-span-6 bg-gray-900 border border-green-800 rounded-lg p-4"
+                }, [
+                  React.createElement('h3', {
+                    key: 'constructor-title',
+                    className: "text-green-300 mb-4 text-center"
+                  }, 'КОНСТРУКТОР ВОСПОМИНАНИЙ'),
                   
-                  <div className={`text-center mb-4 text-lg font-bold ${
-                    evaluation.success ? 'text-green-400' : 'text-red-400'
-                  }`}>
-                    {evaluation.success ? '✓ УТВЕРЖДЕНО' : '✗ ОТКЛОНЕНО'}
-                  </div>
+                  React.createElement('div', {
+                    key: 'constructor-area',
+                    className: "bg-black border border-green-700 rounded-lg p-4 min-h-80 mb-4"
+                  }, selectedBlocks.length === 0 ? 
+                    React.createElement('div', {
+                      className: "text-center text-green-600 mt-20"
+                    }, [
+                      React.createElement('div', {
+                        key: 'icon',
+                        className: "text-4xl mb-4"
+                      }, '🧠'),
+                      React.createElement('p', { key: 'text1' }, 'Выберите блоки памяти из библиотеки'),
+                      React.createElement('p', {
+                        key: 'text2',
+                        className: "text-sm"
+                      }, 'Создайте целостное воспоминание для репликанта')
+                    ])
+                    :
+                    React.createElement('div', {
+                      className: "space-y-3"
+                    }, selectedBlocks.map((block, index) =>
+                      React.createElement('div', {
+                        key: index,
+                        className: "bg-gray-800 border border-green-600 p-3 rounded-lg flex justify-between items-center"
+                      }, [
+                        React.createElement('div', { key: 'info' }, [
+                          React.createElement('div', {
+                            key: 'block-name',
+                            className: "text-green-300 font-bold"
+                          }, block.name),
+                          React.createElement('div', {
+                            key: 'keywords',
+                            className: "text-xs text-gray-400"
+                          }, block.keywords.join(', '))
+                        ]),
+                        React.createElement('button', {
+                          key: 'remove',
+                          onClick: () => removeBlock(index),
+                          className: "text-red-400 hover:text-red-300 text-xl"
+                        }, '×')
+                      ])
+                    ))
+                  ),
 
-                  <div className="text-xs space-y-1 mb-4">
-                    {evaluation.feedback.map((item, index) => (
-                      <div key={index} className={
-                        item.startsWith('✓') ? 'text-green-500' : 'text-red-400'
-                      }>
-                        {item}
-                      </div>
-                    ))}
-                  </div>
+                  React.createElement('div', {
+                    key: 'buttons',
+                    className: "flex flex-wrap justify-center gap-4"
+                  }, [
+                    React.createElement('button', {
+                      key: 'test',
+                      onClick: evaluateMemory,
+                      disabled: selectedBlocks.length === 0,
+                      className: "bg-blue-900 hover:bg-blue-800 disabled:bg-gray-700 border border-blue-600 px-6 py-2 rounded transition-all disabled:opacity-50"
+                    }, 'ПРОВЕСТИ ТЕСТ'),
+                    React.createElement('button', {
+                      key: 'clear',
+                      onClick: () => {
+                        setSelectedBlocks([]);
+                        setBudget(1000);
+                      },
+                      className: "bg-red-900 hover:bg-red-800 border border-red-600 px-6 py-2 rounded transition-all"
+                    }, 'ОЧИСТИТЬ')
+                  ])
+                ]),
 
-                  <div className="text-center">
-                    <div className="text-green-400 mb-2">ОЦЕНКА: {evaluation.score}</div>
-                    <button
-                      onClick={nextOrder}
-                      className="bg-green-900 hover:bg-green-800 border border-green-600 px-4 py-2 rounded text-sm transition-all"
-                    >
-                      СЛЕДУЮЩИЙ ЗАКАЗ
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
+                // Right Panel - Client Info & Results  
+                React.createElement('div', {
+                  key: 'right-panel',
+                  className: "col-span-12 md:col-span-3 space-y-4"
+                }, [
+                  // Client Info
+                  React.createElement('div', {
+                    key: 'client-info',
+                    className: "bg-gray-900 border border-green-800 rounded-lg p-4"
+                  }, [
+                    React.createElement('h3', {
+                      key: 'client-title',
+                      className: "text-green-300 mb-3"
+                    }, 'ЗАКАЗЧИК'),
+                    React.createElement('div', {
+                      key: 'client-data',
+                      className: "text-sm space-y-2"
+                    }, [
+                      React.createElement('div', {
+                        key: 'client-name',
+                        className: "text-green-400 font-bold"
+                      }, currentClient.name),
+                      React.createElement('div', {
+                        key: 'client-desc',
+                        className: "text-green-500 text-xs"
+                      }, currentClient.description),
+                      
+                      React.createElement('div', {
+                        key: 'requirements',
+                        className: "border-t border-green-800 pt-2 mt-3"
+                      }, [
+                        React.createElement('div', {
+                          key: 'req-data',
+                          className: "text-xs"
+                        }, [
+                          React.createElement('div', {
+                            key: 'stability',
+                            className: "mb-1"
+                          }, [
+                            React.createElement('span', {
+                              key: 'stab-label',
+                              className: "text-green-600"
+                            }, 'Стабильность:'),
+                            React.createElement('span', {
+                              key: 'stab-value',
+                              className: "text-green-400"
+                            }, ` ${currentClient.requirements.stability.min}-${currentClient.requirements.stability.max}`)
+                          ]),
+                          React.createElement('div', {
+                            key: 'authenticity',
+                            className: "mb-2"
+                          }, [
+                            React.createElement('span', {
+                              key: 'auth-label',
+                              className: "text-green-600"
+                            }, 'Подлинность:'),
+                            React.createElement('span', {
+                              key: 'auth-value',
+                              className: "text-green-400"
+                            }, ` ${currentClient.requirements.authenticity.min}-${currentClient.requirements.authenticity.max}`)
+                          ]),
+                          
+                          React.createElement('div', {
+                            key: 'preferred',
+                            className: "mb-1"
+                          }, [
+                            React.createElement('span', {
+                              key: 'pref-label',
+                              className: "text-green-600"
+                            }, 'Желательно:'),
+                            React.createElement('div', {
+                              key: 'pref-keywords',
+                              className: "text-green-400 text-xs"
+                            }, currentClient.requirements.preferredKeywords.join(', '))
+                          ]),
+                          
+                          React.createElement('div', { key: 'avoid' }, [
+                            React.createElement('span', {
+                              key: 'avoid-label',
+                              className: "text-red-400"
+                            }, 'Избегать:'),
+                            React.createElement('div', {
+                              key: 'avoid-keywords',
+                              className: "text-red-400 text-xs"
+                            }, currentClient.requirements.avoidKeywords.join(', '))
+                          ])
+                        ])
+                      ])
+                    ])
+                  ]),
 
-export default MemoryArchitect;
+                  // Current Memory Stats
+                  selectedBlocks.length > 0 && React.createElement('div', {
+                    key: 'current-stats',
+                    className: "bg-gray-900 border border-green-800 rounded-lg p-4"
+                  }, [
+                    React.createElement('h3', {
+                      key: 'stats-title',
+                      className: "text-green-300 mb-3"
+                    }, 'АНАЛИЗ'),
+                    React.createElement('div', {
+                      key: 'stats-data',
+                      className: "text-sm space-y-2"
+                    }, [
+                      React.createElement('div', { key: 'current-stability' }, [
+                        React.createElement('span', {
+                          key: 'stab-label',
+                          className: "text-green-600"
+                        }, 'Стабильность:'),
+                        React.createElement('span', {
+                          key: 'stab-value',
+                          className: "text-green-400"
+                        }, ` ${selectedBlocks.reduce((sum, block) => sum + block.stability, 0)}`)
+                      ]),
+                      React.createElement('div', { key: 'current-auth' }, [
+                        React.createElement('span', {
+                          key: 'auth-label',
+                          className: "text-green-600"
+                        }, 'Подлинность:'),
+                        React.createElement('span', {
+                          key: 'auth-value',
+                          className: "text-green-400"
+                        }, ` ${selectedBlocks.reduce((sum, block) => sum + block.authenticity, 0)}`)
+                      ]),
+                      React.createElement('div', { key: 'elements' }, [
+                        React.createElement('span', {
+                          key: 'elem-label',
+                          className: "text-green-600"
+                        }, 'Элементов:'),
+                        React.createElement('span', {
+                          key: 'elem-value',
+                          className: "text-green-400"
+                        }, ` ${selectedBlocks.length}`)
+                      ]),
+                      React.createElement('div', { key: 'spent' }, [
+                        React.createElement('span', {
+                          key: 'spent-label',
+                          className: "text-green-600"
+                        }, 'Потрачено:'),
+                        React.createElement('span', {
+                          key: 'spent-value',
+                          className: "text-green-400"
+                        }, ` ${1000 - budget} кр.`)
+                      ])
+                    ])
+                  ]),
+
+                  // Evaluation Results
+                  evaluation && React.createElement('div', {
+                    key: 'evaluation',
+                    className: "bg-gray-900 border border-green-800 rounded-lg p-4"
+                  }, [
+                    React.createElement('h3', {
+                      key: 'eval-title',
+                      className: "text-green-300 mb-3"
+                    }, 'РЕЗУЛЬТАТ ТЕСТИРОВАНИЯ'),
+                    
+                    React.createElement('div', {
+                      key: 'result',
+                      className: `text-center mb-4 text-lg font-bold ${
+                        evaluation.success ? 'text-green-400' : 'text-red-400'
+                      }`
+                    }, evaluation.success ? '✓ УТВЕРЖДЕНО' : '✗ ОТКЛОНЕНО'),
+
+                    React.createElement('div', {
+                      key: 'feedback',
+                      className: "text-xs space-y-1 mb-4"
+                    }, evaluation.feedback.map((item, index) =>
+                      React.createElement('div', {
+                        key: index,
+                        className: item.startsWith('✓') ? 'text-green-500' : 'text-red-400'
+                      }, item)
+                    )),
+
+                    React.createElement('div', {
+                      key: 'final',
+                      className: "text-center"
+                    }, [
+                      React.createElement('div', {
+                        key: 'score',
+                        className: "text-green-400 mb-2"
+                      }, `ОЦЕНКА: ${evaluation.score}`),
+                      React.createElement('button', {
+                        key: 'next',
+                        onClick: nextOrder,
+                        className: "bg-green-900 hover:bg-green-800 border border-green-600 px-4 py-2 rounded text-sm transition-all"
+                      }, 'СЛЕДУЮЩИЙ ЗАКАЗ')
+                    ])
+                  ])
+                ])
+              ])
+            )
+          ]);
+        };
+
+        ReactDOM.render(React.createElement(MemoryArchitect), document.getElementById('root'));
+    </script>
+</body>
+</html>
